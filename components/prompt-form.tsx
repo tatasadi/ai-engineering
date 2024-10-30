@@ -15,6 +15,8 @@ import {
 	FormMessage,
 } from '@/components/ui/form'
 import { Textarea } from '@/components/ui/textarea'
+import { useActionState } from 'react'
+import { OpenAIChat } from '@/app/actions'
 
 const FormSchema = z.object({
 	prompt: z.string().min(10, {
@@ -23,17 +25,17 @@ const FormSchema = z.object({
 })
 
 export default function PromptForm() {
+	const [state, formAction, isPending] = useActionState(OpenAIChat, null)
+
 	const form = useForm<z.infer<typeof FormSchema>>({
 		resolver: zodResolver(FormSchema),
 	})
 
-	function onSubmit(data: z.infer<typeof FormSchema>) {
-		console.log(data)
-	}
+	console.log(state)
 
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6 flex flex-col">
+			<form action={formAction} className="w-full space-y-6 flex flex-col">
 				<FormField
 					control={form.control}
 					name="prompt"
@@ -52,10 +54,16 @@ export default function PromptForm() {
 						</FormItem>
 					)}
 				/>
-				<Button type="submit" className="self-end">
-					Submit
+				<Button type="submit" className="self-end" disabled={isPending}>
+					{isPending ? 'Submit...' : 'Submit'}
 				</Button>
 			</form>
+			{state && (
+				<div className="mt-6">
+					<h2 className="text-xl font-bold">Response</h2>
+					<p>{state}</p>
+				</div>
+			)}
 		</Form>
 	)
 }
